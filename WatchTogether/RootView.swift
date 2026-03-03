@@ -5,7 +5,7 @@ import SwiftUI
 ///  ┌─ isLoading ──► Splash
 ///  ├─ signed out ──► AuthView  (login / register)
 ///  ├─ signed in, no couple ──► PairingView
-///  └─ signed in, has couple ──► MainTabPlaceholder  (Phase 4)
+///  └─ signed in, has couple ──► MainTabView
 struct RootView: View {
 
     @State private var auth = AuthViewModel()
@@ -19,7 +19,7 @@ struct RootView: View {
             } else if auth.currentUser?.coupleId == nil {
                 PairingView()
             } else {
-                mainPlaceholder
+                MainTabView()
             }
         }
         .environment(auth)
@@ -40,21 +40,5 @@ struct RootView: View {
         }
     }
 
-    private var mainPlaceholder: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(.green)
-            if let name = auth.currentUser?.displayName {
-                Text("Welcome, \(name)!")
-                    .font(.title2.bold())
-            }
-            Text("Phase 4 — main app coming next")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Button("Sign Out", role: .destructive) { auth.signOut() }
-                .padding(.top, 8)
-        }
-        .padding()
-    }
+
 }
