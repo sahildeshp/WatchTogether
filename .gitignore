@@ -1,0 +1,19 @@
+# ── Xcode generated (regenerate with: xcodegen generate) ──────────────────────
+*.xcodeproj/
+DerivedData/
+xcuserdata/
+*.xcuserdatad/
+
+# ── Sensitive — MUST be created locally, never committed ──────────────────────
+GoogleService-Info.plist
+WatchTogether/Configuration/Debug.xcconfig
+WatchTogether/Configuration/Release.xcconfig
+
+# ── macOS ─────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ── Swift Package Manager ─────────────────────────────────────────────────────
+.build/
+.swiftpm/configuration/
