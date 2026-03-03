@@ -122,6 +122,15 @@ private struct PairingChooserView: View {
                 .font(.footnote)
                 .padding(.top, 24)
                 .padding(.bottom, 12)
+
+#if DEBUG
+            Button("⚙ Skip pairing (debug)") {
+                auth.updateCoupleId("debug-couple")
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .padding(.bottom, 8)
+#endif
         }
         .padding()
     }
