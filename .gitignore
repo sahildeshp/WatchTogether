@@ -17,3 +17,7 @@ WatchTogether/Configuration/Release.xcconfig
 # ── Swift Package Manager ─────────────────────────────────────────────────────
 .build/
 .swiftpm/configuration/
+
+# ── Cloud Functions ────────────────────────────────────────────────────────────
+functions/lib/
+functions/node_modules/
