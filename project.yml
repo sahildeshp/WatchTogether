@@ -30,6 +30,8 @@ targets:
     configFiles:
       Debug: WatchTogether/Configuration/Debug.xcconfig
       Release: WatchTogether/Configuration/Release.xcconfig
+    entitlements:
+      path: WatchTogether/Resources/WatchTogether.entitlements
     settings:
       base:
         INFOPLIST_FILE: WatchTogether/Resources/Info.plist

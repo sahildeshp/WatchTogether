@@ -23,7 +23,7 @@ struct WatchTogetherApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
         }
         .modelContainer(modelContainer)
     }
