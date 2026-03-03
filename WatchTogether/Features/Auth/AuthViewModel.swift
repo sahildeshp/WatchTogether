@@ -100,4 +100,13 @@ final class AuthViewModel {
     func clearError() {
         error = nil
     }
+
+    /// Called by PairingViewModel after a successful couple creation or join.
+    /// Patches the in-memory user so RootView transitions immediately, without
+    /// waiting for the next Firebase auth-state event.
+    func updateCoupleId(_ coupleId: String) {
+        guard var user = currentUser else { return }
+        user.coupleId = coupleId
+        currentUser = user
+    }
 }

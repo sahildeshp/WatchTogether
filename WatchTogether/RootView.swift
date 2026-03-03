@@ -4,7 +4,7 @@ import SwiftUI
 ///
 ///  ┌─ isLoading ──► Splash
 ///  ├─ signed out ──► AuthView  (login / register)
-///  ├─ signed in, no couple ──► PairingPlaceholder  (Phase 3)
+///  ├─ signed in, no couple ──► PairingView
 ///  └─ signed in, has couple ──► MainTabPlaceholder  (Phase 4)
 struct RootView: View {
 
@@ -17,7 +17,7 @@ struct RootView: View {
             } else if auth.currentUser == nil {
                 AuthView()
             } else if auth.currentUser?.coupleId == nil {
-                pairingPlaceholder
+                PairingView()
             } else {
                 mainPlaceholder
             }
@@ -25,6 +25,7 @@ struct RootView: View {
         .environment(auth)
         .animation(.easeInOut(duration: 0.25), value: auth.currentUser?.id)
         .animation(.easeInOut(duration: 0.25), value: auth.isLoading)
+        .animation(.easeInOut(duration: 0.25), value: auth.currentUser?.coupleId)
     }
 
     // MARK: - Placeholder screens (replaced in later phases)
@@ -37,22 +38,6 @@ struct RootView: View {
             Text("WatchTogether")
                 .font(.largeTitle.bold())
         }
-    }
-
-    private var pairingPlaceholder: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "person.2.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(.purple)
-            Text("Set up your couple account")
-                .font(.title2.bold())
-            Text("Phase 3 — coming next")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Button("Sign Out", role: .destructive) { auth.signOut() }
-                .padding(.top, 8)
-        }
-        .padding()
     }
 
     private var mainPlaceholder: some View {
