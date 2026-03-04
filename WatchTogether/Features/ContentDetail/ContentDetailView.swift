@@ -7,6 +7,7 @@ struct ContentDetailView: View {
     let service: TMDBService
 
     @State private var vm: ContentDetailViewModel
+    @Environment(AuthViewModel.self) private var auth
 
     init(result: TMDBSearchResult, service: TMDBService = .shared) {
         self.result = result
@@ -26,7 +27,13 @@ struct ContentDetailView: View {
             }
         }
         .navigationBarTitleDisplayMode(.inline)
-        .task { await vm.load() }
+        .safeAreaInset(edge: .bottom) {
+            if vm.detail != nil { ourListBottomBar }
+        }
+        .task {
+            vm.userId = auth.currentUser?.id
+            await vm.load()
+        }
     }
 
     // MARK: - Detail scroll view
@@ -43,9 +50,8 @@ struct ContentDetailView: View {
                 }
                 if let credits = detail.credits, !credits.cast.isEmpty {
                     castSection(cast: Array(credits.cast.prefix(10)))
-                    Divider().padding(.horizontal)
                 }
-                actionButtons(detail: detail)
+                Spacer(minLength: 16)
             }
         }
         .ignoresSafeArea(edges: .top)
@@ -185,33 +191,48 @@ struct ContentDetailView: View {
         .padding(.vertical)
     }
 
-    // MARK: - Action buttons (wired up in Phase 5/6)
+    // MARK: - Pinned bottom bar (two pill buttons)
 
-    private func actionButtons(detail: TMDBDetail) -> some View {
-        VStack(spacing: 12) {
+    private var ourListBottomBar: some View {
+        HStack(spacing: 12) {
+            // My List pill
             Button {
-                // Phase 5: add to personal watchlist
+                Task { await vm.addToMyList() }
             } label: {
-                Label("Add to My List", systemImage: "plus")
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(.purple)
-                    .foregroundStyle(.white)
-                    .clipShape(.rect(cornerRadius: 14))
+                Group {
+                    if vm.isAddingToList {
+                        ProgressView().tint(.white)
+                    } else {
+                        Label(vm.myListStatus != nil ? vm.myListStatus!.label : "My List",
+                              systemImage: vm.myListStatus != nil ? vm.myListStatus!.icon : "bookmark")
+                    }
+                }
+                .font(.subheadline.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(vm.myListStatus != nil ? .purple : .purple.opacity(0.12))
+                .foregroundStyle(vm.myListStatus != nil ? .white : .purple)
+                .clipShape(Capsule())
             }
+            .disabled(vm.isAddingToList || vm.myListStatus != nil)
 
+            // Our List pill (Phase 6)
             Button {
-                // Phase 6: add to couple watchlist
+                // Phase 6
             } label: {
-                Label("Add to Our List", systemImage: "heart")
+                Label("Our List", systemImage: "heart")
+                    .font(.subheadline.weight(.semibold))
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(.vertical, 12)
                     .background(.purple.opacity(0.12))
                     .foregroundStyle(.purple)
-                    .clipShape(.rect(cornerRadius: 14))
+                    .clipShape(Capsule())
             }
         }
-        .padding()
+        .padding(.horizontal)
+        .padding(.vertical, 10)
+        .background(.regularMaterial)
+        .overlay(alignment: .top) { Divider() }
     }
 
     // MARK: - Error

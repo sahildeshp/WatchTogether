@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Root tab view shown to paired users.
-/// Search is functional from Phase 4. Other tabs are activated in later phases.
+/// Search and My List are functional from Phase 5. Other tabs are activated in later phases.
 struct MainTabView: View {
 
     @Environment(AuthViewModel.self) private var auth
@@ -11,7 +11,7 @@ struct MainTabView: View {
             SearchView()
                 .tabItem { Label("Search", systemImage: "magnifyingglass") }
 
-            ComingSoonTabView(title: "My List", icon: "list.bullet.rectangle")
+            MyListView()
                 .tabItem { Label("My List", systemImage: "list.bullet.rectangle") }
 
             ComingSoonTabView(title: "Our List", icon: "heart.fill")

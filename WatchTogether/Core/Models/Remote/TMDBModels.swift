@@ -24,15 +24,15 @@ struct TMDBSearchResult: Decodable, Identifiable, Hashable, Sendable {
     }
 
     // Custom init because the JSON field for the title differs by media type.
+    // Raw values intentionally omitted: `.convertFromSnakeCase` converts JSON
+    // keys (e.g. "media_type" → "mediaType") before matching CodingKey raw values,
+    // so the raw value must equal the *camelCase* form, which is the default.
     private enum CodingKeys: String, CodingKey {
-        case id
-        case mediaType  = "media_type"
-        case title
-        case name
-        case posterPath = "poster_path"
-        case overview
-        case releaseDate   = "release_date"
-        case firstAirDate  = "first_air_date"
+        case id, title, name, overview
+        case mediaType      // matched from JSON "media_type"
+        case posterPath     // matched from JSON "poster_path"
+        case releaseDate    // matched from JSON "release_date"
+        case firstAirDate   // matched from JSON "first_air_date"
     }
 
     init(from decoder: Decoder) throws {
