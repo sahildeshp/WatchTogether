@@ -18,8 +18,9 @@ struct WatchHistoryView: View {
             }
             .navigationTitle("History")
         }
-        .task {
-            guard vm == nil, let userId = auth.currentUser?.id else { return }
+        // Re-runs when coupleId changes so couple history appears after pairing
+        .task(id: auth.currentUser?.coupleId) {
+            guard let userId = auth.currentUser?.id else { return }
             let viewModel = WatchHistoryViewModel(userId: userId, coupleId: auth.currentUser?.coupleId)
             vm = viewModel
             viewModel.startWatching()

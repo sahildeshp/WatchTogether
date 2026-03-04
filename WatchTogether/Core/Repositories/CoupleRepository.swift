@@ -13,4 +13,8 @@ protocol CoupleRepository: Sendable {
     func createCouple() async throws -> CoupleInfo
     /// Joins an existing couple using a partner's invite code.
     func joinCouple(inviteCode: String) async throws -> CoupleInfo
+    /// Removes the signed-in user from their current couple (clears coupleId on their user doc).
+    func leaveCouple(userId: String) async throws
+    /// Fetches the display name of the other member of the couple.
+    func fetchPartnerName(coupleId: String, userId: String) async -> String?
 }

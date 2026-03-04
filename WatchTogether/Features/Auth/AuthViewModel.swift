@@ -25,10 +25,13 @@ final class AuthViewModel {
     private(set) var isLoading = true
     /// Set when a sign-in / register / sign-out operation fails.
     var error: AuthError?
+    /// Display name of the partner, populated when the user is paired.
+    private(set) var partnerName: String?
 
     // MARK: Private
 
     private let repository: AuthRepository
+    private let coupleRepository: CoupleRepository
 
     /// The task that drives the auth-state observation loop.
     /// Stored as `nonisolated(unsafe)` so it can be cancelled from `deinit`.
@@ -36,12 +39,24 @@ final class AuthViewModel {
 
     // MARK: Init / deinit
 
-    init(repository: AuthRepository = FirebaseAuthRepository()) {
+    init(
+        repository: AuthRepository = FirebaseAuthRepository(),
+        coupleRepository: CoupleRepository = FirebaseCoupleRepository()
+    ) {
         self.repository = repository
+        self.coupleRepository = coupleRepository
         observationTask = Task {
             for await user in repository.userStream {
                 self.currentUser = user
                 self.isLoading = false
+                if let user {
+                    // Register for push notifications and save FCM token
+                    await NotificationService.shared.setup(userId: user.id)
+                    // Fetch partner name if paired
+                    await self.refreshPartnerName(for: user)
+                } else {
+                    self.partnerName = nil
+                }
             }
         }
     }
@@ -108,5 +123,30 @@ final class AuthViewModel {
         guard var user = currentUser else { return }
         user.coupleId = coupleId
         currentUser = user
+        Task { await refreshPartnerName(for: user) }
+    }
+
+    /// Removes the user from their couple in Firestore and clears it in memory.
+    func leaveCouple() async {
+        guard let user = currentUser, user.coupleId != nil else { return }
+        do {
+            try await coupleRepository.leaveCouple(userId: user.id)
+            var updated = user
+            updated.coupleId = nil
+            currentUser = updated
+            partnerName = nil
+        } catch {
+            self.error = .message(error.localizedDescription)
+        }
+    }
+
+    // MARK: - Private helpers
+
+    private func refreshPartnerName(for user: AppUser) async {
+        guard let coupleId = user.coupleId else {
+            partnerName = nil
+            return
+        }
+        partnerName = await coupleRepository.fetchPartnerName(coupleId: coupleId, userId: user.id)
     }
 }

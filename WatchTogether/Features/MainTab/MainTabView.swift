@@ -1,10 +1,7 @@
 import SwiftUI
 
-/// Root tab view shown to paired users.
-/// Search and My List are functional from Phase 5. Other tabs are activated in later phases.
+/// Root tab view shown to all signed-in users (paired or unpaired).
 struct MainTabView: View {
-
-    @Environment(AuthViewModel.self) private var auth
 
     var body: some View {
         TabView {
@@ -20,49 +17,9 @@ struct MainTabView: View {
             WatchHistoryView()
                 .tabItem { Label("History", systemImage: "clock.fill") }
 
-            profileTab
+            ProfileView()
                 .tabItem { Label("Profile", systemImage: "person.fill") }
         }
         .tint(.purple)
-    }
-
-    // MARK: - Profile tab (simple for now; expanded in Phase 8)
-
-    private var profileTab: some View {
-        NavigationStack {
-            List {
-                if let user = auth.currentUser {
-                    Section("Account") {
-                        LabeledContent("Name", value: user.displayName ?? "—")
-                        LabeledContent("Email", value: user.email ?? "—")
-                    }
-                }
-                Section {
-                    Button("Sign Out", role: .destructive) { auth.signOut() }
-                }
-            }
-            .navigationTitle("Profile")
-        }
-    }
-}
-
-// MARK: - Placeholder for upcoming tabs
-
-private struct ComingSoonTabView: View {
-    let title: String
-    let icon: String
-
-    var body: some View {
-        VStack(spacing: 14) {
-            Image(systemName: icon)
-                .font(.system(size: 44))
-                .foregroundStyle(.purple.opacity(0.4))
-            Text(title)
-                .font(.title3.bold())
-            Text("Coming soon")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

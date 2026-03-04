@@ -1,6 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { getMessaging } from "firebase-admin/messaging";
 
 initializeApp();
 
@@ -136,6 +137,27 @@ export const joinCouple = onCall(async (request) => {
       coupleId: coupleDoc.id,
     });
   });
+
+  // Notify the couple creator that their partner has joined
+  const creatorId = memberIds[0];
+  const joinerSnap = await db.collection("users").doc(userId).get();
+  const joinerName: string = joinerSnap.data()?.displayName ?? "Your partner";
+  const creatorSnap = await db.collection("users").doc(creatorId).get();
+  const fcmToken: string | undefined = creatorSnap.data()?.fcmToken;
+  if (fcmToken) {
+    try {
+      await getMessaging().send({
+        token: fcmToken,
+        notification: {
+          title: "Partner joined! 🎉",
+          body: `${joinerName} just joined using your invite code.`,
+        },
+      });
+    } catch (e) {
+      // Non-fatal — don't fail the join if the notification can't be sent
+      console.error("FCM notification failed:", e);
+    }
+  }
 
   return { coupleId: coupleDoc.id };
 });

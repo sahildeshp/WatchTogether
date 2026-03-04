@@ -11,21 +11,39 @@ struct CoupleListView: View {
             Group {
                 if let vm {
                     CoupleListContentView(vm: vm)
-                } else {
+                } else if auth.currentUser?.coupleId != nil {
                     ProgressView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    unpairedEmptyState
                 }
             }
             .navigationTitle("Our List")
         }
-        .task {
-            guard vm == nil,
-                  let coupleId = auth.currentUser?.coupleId,
+        // Re-runs when coupleId changes (nil → set after pairing)
+        .task(id: auth.currentUser?.coupleId) {
+            guard let coupleId = auth.currentUser?.coupleId,
                   let userId = auth.currentUser?.id else { return }
             let viewModel = CoupleListViewModel(coupleId: coupleId, userId: userId)
             vm = viewModel
             viewModel.startWatching()
         }
+    }
+
+    private var unpairedEmptyState: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "heart.circle")
+                .font(.system(size: 48))
+                .foregroundStyle(.purple.opacity(0.3))
+            Text("No partner yet")
+                .font(.title3.bold())
+            Text("Add a partner in your Profile to start\na shared watchlist.")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 40)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
