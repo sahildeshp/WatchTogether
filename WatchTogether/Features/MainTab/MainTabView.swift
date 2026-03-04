@@ -17,7 +17,7 @@ struct MainTabView: View {
             CoupleListView()
                 .tabItem { Label("Our List", systemImage: "heart.fill") }
 
-            ComingSoonTabView(title: "History", icon: "clock.fill")
+            WatchHistoryView()
                 .tabItem { Label("History", systemImage: "clock.fill") }
 
             profileTab
