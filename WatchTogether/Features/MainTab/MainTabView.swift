@@ -14,7 +14,7 @@ struct MainTabView: View {
             MyListView()
                 .tabItem { Label("My List", systemImage: "list.bullet.rectangle") }
 
-            ComingSoonTabView(title: "Our List", icon: "heart.fill")
+            CoupleListView()
                 .tabItem { Label("Our List", systemImage: "heart.fill") }
 
             ComingSoonTabView(title: "History", icon: "clock.fill")

@@ -10,29 +10,38 @@ final class ContentDetailViewModel {
     private(set) var isLoading = false
     var errorMessage: String?
 
-    // MARK: - Watchlist state
+    // MARK: - My List state
 
     private(set) var myListStatus: WatchlistStatus?   // nil = not in list
     private(set) var isAddingToList = false
+
+    // MARK: - Couple List state
+
+    private(set) var coupleListStatus: WatchlistStatus?   // nil = not in couple list
+    private(set) var isAddingToCoupleList = false
 
     // MARK: - Dependencies
 
     private let result: TMDBSearchResult
     private let service: TMDBService
     private let watchlistRepo: WatchlistRepository
+    private let coupleWatchlistRepo: CoupleWatchlistRepository
     /// Injected from the environment before `load()` is called.
     var userId: String?
+    var coupleId: String?
 
     // MARK: - Init
 
     init(
         result: TMDBSearchResult,
         service: TMDBService = .shared,
-        watchlistRepo: WatchlistRepository = FirestoreWatchlistRepository()
+        watchlistRepo: WatchlistRepository = FirestoreWatchlistRepository(),
+        coupleWatchlistRepo: CoupleWatchlistRepository = FirestoreCoupleWatchlistRepository()
     ) {
         self.result = result
         self.service = service
         self.watchlistRepo = watchlistRepo
+        self.coupleWatchlistRepo = coupleWatchlistRepo
     }
 
     // MARK: - Load
@@ -55,9 +64,10 @@ final class ContentDetailViewModel {
         }
         isLoading = false
         await refreshMyListStatus()
+        await refreshCoupleListStatus()
     }
 
-    // MARK: - Watchlist actions
+    // MARK: - My List actions
 
     func addToMyList() async {
         guard let userId, myListStatus == nil else { return }
@@ -83,15 +93,38 @@ final class ContentDetailViewModel {
         }
     }
 
+    // MARK: - Couple List actions
+
+    func addToOurList() async {
+        guard let userId, let coupleId, coupleListStatus == nil else { return }
+        isAddingToCoupleList = true
+        let item = CoupleWatchlistItem(from: result, nominatedBy: userId)
+        do {
+            try await coupleWatchlistRepo.add(item: item, coupleId: coupleId)
+            coupleListStatus = .want
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+        isAddingToCoupleList = false
+    }
+
     // MARK: - Private helpers
 
     private func refreshMyListStatus() async {
         guard let userId else { return }
         let itemId = WatchlistItem.docId(tmdbId: result.id, mediaType: result.mediaType.rawValue)
-        // We watch the snapshot stream; just grab the first emission to seed the status.
         for await items in watchlistRepo.watchMyList(userId: userId) {
             myListStatus = items.first(where: { $0.id == itemId })?.status
-            return   // only need the initial snapshot here
+            return
+        }
+    }
+
+    private func refreshCoupleListStatus() async {
+        guard let coupleId else { return }
+        let itemId = CoupleWatchlistItem.docId(tmdbId: result.id, mediaType: result.mediaType.rawValue)
+        for await items in coupleWatchlistRepo.watchCoupleList(coupleId: coupleId) {
+            coupleListStatus = items.first(where: { $0.id == itemId })?.status
+            return
         }
     }
 }

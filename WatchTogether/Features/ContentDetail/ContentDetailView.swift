@@ -32,6 +32,7 @@ struct ContentDetailView: View {
         }
         .task {
             vm.userId = auth.currentUser?.id
+            vm.coupleId = auth.currentUser?.coupleId
             await vm.load()
         }
     }
@@ -216,18 +217,26 @@ struct ContentDetailView: View {
             }
             .disabled(vm.isAddingToList || vm.myListStatus != nil)
 
-            // Our List pill (Phase 6)
+            // Our List pill
             Button {
-                // Phase 6
+                Task { await vm.addToOurList() }
             } label: {
-                Label("Our List", systemImage: "heart")
-                    .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(.purple.opacity(0.12))
-                    .foregroundStyle(.purple)
-                    .clipShape(Capsule())
+                Group {
+                    if vm.isAddingToCoupleList {
+                        ProgressView().tint(.white)
+                    } else {
+                        Label(vm.coupleListStatus != nil ? vm.coupleListStatus!.label : "Our List",
+                              systemImage: vm.coupleListStatus != nil ? vm.coupleListStatus!.icon : "heart")
+                    }
+                }
+                .font(.subheadline.weight(.semibold))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(vm.coupleListStatus != nil ? .pink : .purple.opacity(0.12))
+                .foregroundStyle(vm.coupleListStatus != nil ? .white : .purple)
+                .clipShape(Capsule())
             }
+            .disabled(vm.isAddingToCoupleList || vm.coupleListStatus != nil || vm.coupleId == nil)
         }
         .padding(.horizontal)
         .padding(.vertical, 10)
