@@ -2,7 +2,7 @@
 
 A couples iOS app for tracking movies and TV shows to watch together — built with SwiftUI, Firebase, and TMDB.
 
-> **Vibecoded entirely with [Claude](https://claude.ai/claude-code) by Anthropic.**
+> **Vibecoded with [Claude](https://claude.ai/claude-code) by Anthropic.**
 
 ---
 
@@ -101,5 +101,3 @@ firebase deploy --only firestore:rules
 - [x] Phase 8 — Polish & Testing (security rules, profile photo, accessibility, unit + UI tests)
 
 ---
-
-*Built with Claude Code — Anthropic's AI coding assistant.*
