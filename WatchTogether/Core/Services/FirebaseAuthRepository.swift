@@ -1,6 +1,7 @@
 import Foundation
 import FirebaseAuth
 import FirebaseFirestore
+import FirebaseStorage
 
 /// Firebase-backed implementation of `AuthRepository`.
 final class FirebaseAuthRepository: AuthRepository, @unchecked Sendable {
@@ -23,7 +24,7 @@ final class FirebaseAuthRepository: AuthRepository, @unchecked Sendable {
                 Task {
                     let user = await Self.buildAppUser(
                         uid: uid, email: email,
-                        displayName: displayName, photoURL: photoURL
+                        displayName: displayName, authPhotoURL: photoURL
                     )
                     continuation.yield(user)
                 }
@@ -100,24 +101,59 @@ final class FirebaseAuthRepository: AuthRepository, @unchecked Sendable {
         ])
     }
 
+    // MARK: - Profile photo upload
+
+    func uploadProfilePhoto(_ imageData: Data) async throws -> URL {
+        guard let userId = Auth.auth().currentUser?.uid else {
+            throw AuthError.message("Not signed in.")
+        }
+        let ref = Storage.storage().reference().child("profile_photos/\(userId).jpg")
+        let metadata = StorageMetadata()
+        metadata.contentType = "image/jpeg"
+        _ = try await ref.putDataAsync(imageData, metadata: metadata)
+        let downloadURL = try await ref.downloadURL()
+
+        // Persist in Firestore so all clients can read it.
+        // We intentionally skip updating the Firebase Auth profile (commitChanges)
+        // because that triggers stateDidChangeListener → buildAppUser, which would
+        // race against the currentUser?.photoURL update already applied in AuthViewModel.
+        try await Firestore.firestore()
+            .collection("users")
+            .document(userId)
+            .updateData(["photoURL": downloadURL.absoluteString])
+
+        return downloadURL
+    }
+
     // MARK: - Helpers
 
+    /// Builds an `AppUser` by merging Firebase Auth values with Firestore profile data.
+    /// `photoURL` is preferred from Firestore (updated by `uploadProfilePhoto`) and falls
+    /// back to the Firebase Auth value when absent.
     private static func buildAppUser(
         uid: String,
         email: String?,
         displayName: String?,
-        photoURL: URL?
+        authPhotoURL: URL?
     ) async -> AppUser {
         do {
             let doc = try await Firestore.firestore()
                 .collection("users")
                 .document(uid)
                 .getDocument()
-            let coupleId = doc.data()?["coupleId"] as? String
+            let data = doc.data()
+            let coupleId = data?["coupleId"] as? String
+            // Prefer Firestore-stored URL (set by our upload flow)
+            let photoURL: URL?
+            if let urlString = data?["photoURL"] as? String {
+                photoURL = URL(string: urlString)
+            } else {
+                photoURL = authPhotoURL
+            }
             return AppUser(id: uid, email: email, displayName: displayName, photoURL: photoURL, coupleId: coupleId)
         } catch {
-            // Return user without coupleId if Firestore is unavailable (offline)
-            return AppUser(id: uid, email: email, displayName: displayName, photoURL: photoURL, coupleId: nil)
+            // Return user without coupleId / photo if Firestore is unavailable (offline)
+            return AppUser(id: uid, email: email, displayName: displayName, photoURL: authPhotoURL, coupleId: nil)
         }
     }
 }

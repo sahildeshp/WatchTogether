@@ -1,0 +1,48 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /// True when the request comes from the authenticated user identified by uid.
+    function isUser(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    /// True when the signed-in user is a member of the given couple document.
+    function isCoupleMember(coupleId) {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/couples/$(coupleId))
+        && request.auth.uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.memberIds;
+    }
+
+    // ── Users ─────────────────────────────────────────────────────────────────
+
+    match /users/{userId} {
+      // A user can read and write only their own profile document.
+      allow read, write: if isUser(userId);
+
+      // Personal watchlist — private to the owner.
+      match /watchlist/{itemId} {
+        allow read, write: if isUser(userId);
+      }
+    }
+
+    // ── Couples ───────────────────────────────────────────────────────────────
+
+    match /couples/{coupleId} {
+      // Only members of the couple may read its document.
+      allow read: if isCoupleMember(coupleId);
+
+      // Only Cloud Functions (admin SDK) may create/update couple documents.
+      // Clients must NOT write directly to couples/{coupleId}.
+      allow write: if false;
+
+      // Shared watchlist — read/write restricted to couple members.
+      match /watchlist/{itemId} {
+        allow read, write: if isCoupleMember(coupleId);
+      }
+    }
+  }
+}

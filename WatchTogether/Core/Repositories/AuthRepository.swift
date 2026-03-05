@@ -10,4 +10,7 @@ protocol AuthRepository: Sendable {
     func register(email: String, password: String, displayName: String) async throws
     func signInWithApple(idToken: String, rawNonce: String, fullName: PersonNameComponents?) async throws
     func signOut() throws
+    /// Uploads JPEG data to Firebase Storage, updates both Firebase Auth profile and
+    /// the Firestore user document, and returns the resulting download URL.
+    func uploadProfilePhoto(_ imageData: Data) async throws -> URL
 }

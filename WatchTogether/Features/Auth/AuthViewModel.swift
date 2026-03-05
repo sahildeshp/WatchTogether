@@ -110,6 +110,18 @@ final class AuthViewModel {
         }
     }
 
+    // MARK: - Profile photo
+
+    func uploadProfilePhoto(_ imageData: Data) async {
+        error = nil
+        do {
+            let url = try await repository.uploadProfilePhoto(imageData)
+            currentUser?.photoURL = url
+        } catch {
+            self.error = .message(error.localizedDescription)
+        }
+    }
+
     // MARK: - Helpers
 
     func clearError() {

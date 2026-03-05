@@ -103,6 +103,7 @@ private struct SearchResultRow: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                .accessibilityElement(children: .combine)
 
                 if !result.overview.isEmpty {
                     Text(result.overview)
@@ -113,6 +114,13 @@ private struct SearchResultRow: View {
                 }
             }
         }
+        .accessibilityLabel(accessibilityDescription)
+    }
+
+    private var accessibilityDescription: String {
+        var parts = [result.title, result.mediaType == .movie ? "Movie" : "TV Series"]
+        if let year = result.releaseYear { parts.append(String(year)) }
+        return parts.joined(separator: ", ")
     }
 
     private var posterThumbnail: some View {
@@ -132,5 +140,6 @@ private struct SearchResultRow: View {
         }
         .frame(width: 54, height: 81)
         .clipShape(.rect(cornerRadius: 6))
+        .accessibilityHidden(true)
     }
 }

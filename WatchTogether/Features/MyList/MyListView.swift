@@ -168,6 +168,7 @@ private struct WatchlistRow: View {
         }
         .frame(width: 48, height: 72)
         .clipShape(.rect(cornerRadius: 6))
+        .accessibilityHidden(true)
     }
 
     // MARK: Info
@@ -190,11 +191,13 @@ private struct WatchlistRow: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .accessibilityElement(children: .combine)
 
             if let rating = item.rating {
                 Label("\(rating)/10", systemImage: "star.fill")
                     .font(.caption)
                     .foregroundStyle(.orange)
+                    .accessibilityLabel("Rated \(rating) out of 10")
             }
         }
     }
@@ -217,7 +220,9 @@ private struct WatchlistRow: View {
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
+        .accessibilityLabel("Status")
     }
 }

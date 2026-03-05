@@ -32,6 +32,9 @@ struct RatingPickerView: View {
                             .foregroundStyle(currentRating == n ? .white : .purple)
                             .clipShape(Circle())
                     }
+                    .accessibilityLabel("\(n) out of 10")
+                    .accessibilityAddTraits(currentRating == n ? .isSelected : [])
+                    .accessibilityHint("Double-tap to set your rating")
                 }
             }
             .padding(.horizontal)

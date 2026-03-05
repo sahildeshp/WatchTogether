@@ -191,6 +191,7 @@ private struct CoupleWatchlistRow: View {
         }
         .frame(width: 54, height: 81)
         .clipShape(.rect(cornerRadius: 6))
+        .accessibilityHidden(true)
     }
 
     // MARK: Info
@@ -225,6 +226,7 @@ private struct CoupleWatchlistRow: View {
                     )
                     .foregroundStyle(item.nominatedBy == vm.userId ? .blue : .pink)
             }
+            .accessibilityElement(children: .combine)
         }
     }
 
@@ -246,8 +248,10 @@ private struct CoupleWatchlistRow: View {
                         .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
+        .accessibilityLabel("Status")
     }
 
     // MARK: Ratings (shown only for watched items)
@@ -275,5 +279,7 @@ private struct CoupleWatchlistRow: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(rating.map { "\(label): \($0) out of 10" } ?? "\(label): not yet rated")
     }
 }
